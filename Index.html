@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>Sistem Penilaian TPA</title>
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --primary: #0f766e; --primary-light: #14b8a6; --primary-hover: #0d9488;
+      --secondary: #2563eb; --secondary-hover: #1d4ed8;
+      --danger: #dc2626; --danger-hover: #b91c1c;
+      --bg: #f8fafc; --surface: #ffffff; --text: #0f172a; --text-secondary: #475569;
+      --border: #e2e8f0;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --radius: 8px; --transition: 0.2s ease;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text); 
+      padding: 16px; 
+      min-height: 100vh;
+      /* Memastikan hanya ada 1 scrollbar murni dari browser */
+      overflow-x: auto; 
+    }
+    .container {
+      max-width: 1320px; 
+      margin: 0 auto; 
+      background: var(--surface);
+      padding: 20px; 
+      border-radius: 12px; 
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+    h2 { font-size: 1.5rem; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+    h2::before { content: "📘"; font-size: 1.2rem; }
+    .subtitle {
+      color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 20px;
+      border-bottom: 1px solid var(--border); padding-bottom: 12px;
+    }
+    .toolbar {
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+      flex-wrap: wrap; background: #f1f5f9; padding: 12px 16px; border-radius: 10px;
+      border: 1px solid var(--border); margin-bottom: 16px;
+    }
+    .toolbar-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .toolbar-group label { font-weight: 600; color: var(--text-secondary); font-size: 0.85rem; }
+    
+    select, input[type="text"] {
+      padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius);
+      font-size: 0.85rem; background: white; transition: border-color var(--transition);
+      outline: none; color: var(--text);
+    }
+    select:focus, input[type="text"]:focus {
+      border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.15);
+    }
+    
+    button {
+      padding: 8px 14px; border: none; border-radius: var(--radius); cursor: pointer;
+      font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px;
+      transition: all var(--transition); white-space: nowrap;
+    }
+    .btn-primary { background: var(--primary); color: white; box-shadow: var(--shadow-sm); }
+    .btn-primary:hover { background: var(--primary-hover); box-shadow: var(--shadow); }
+    .btn-secondary { background: var(--secondary); color: white; box-shadow: var(--shadow-sm); }
+    .btn-secondary:hover { background: var(--secondary-hover); box-shadow: var(--shadow); }
+    .btn-refresh { background: #64748b; color: white; }
+    .btn-refresh:hover { background: #475569; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-danger:hover { background: var(--danger-hover); }
+    .btn-disabled { opacity: 0.65; cursor: not-allowed; pointer-events: none; }
+    
+    .loader {
+      width: 18px; height: 18px; border: 3px solid rgba(255,255,255,0.3);
+      border-radius: 50%; border-top-color: var(--primary); animation: spin 0.7s linear infinite; display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Penyesuaian Wrapper untuk Sticky Native CSS */
+    .table-wrapper {
+      margin-bottom: 20px;
+      /* Menghapus overflow: auto dan max-height agar scroll ditarik ke body peramban */
+      border-radius: 8px;
+    }
+    table {
+      width: 100%; border-collapse: separate; border-spacing: 0; min-width: 1000px; font-size: 0.85rem;
+    }
+    
+    /* Konfigurasi Header Sticky Bawaan CSS */
+    thead { z-index: 50; }
+    th {
+      position: sticky; top: 0; z-index: 10;
+      font-weight: 700; color: #1e293b; padding: 12px 8px; text-align: left;
+      background: #f1f5f9; border-bottom: 2px solid #cbd5e1;
+      box-shadow: 0 2px 4px -2px rgba(0,0,0,0.1);
+      white-space: nowrap;
+    }
+    th.sub {
+      top: 41px; /* Mengikuti tinggi baris th pertama */
+      font-size: 0.75rem; font-weight: 600; padding: 8px;
+      border-bottom: 2px solid #cbd5e1; white-space: normal;
+    }
+    
+    td {
+      padding: 8px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; background: white;
+    }
+    tbody tr:hover td { background: #f0fdfa; }
+    td select, td input[type="text"] { width: 100%; padding: 6px; font-size: 0.8rem; border-radius: 4px; }
+    
+    .aksi-cell { display: flex; gap: 4px; justify-content: center; }
+    .btn-icon {
+      background: none; border: none; padding: 6px; cursor: pointer;
+      color: var(--text-secondary); border-radius: 4px; display: inline-flex;
+    }
+    .btn-icon:hover { background: rgba(0,0,0,0.05); }
+    .btn-simpan { color: var(--primary); }
+    .btn-lihat { color: #2563eb; }
+    .btn-hapus { color: var(--danger); }
+
+    /* Modal & Toast Tetap Sama */
+    .modal {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center;
+    }
+    .modal.show { display: flex; }
+    .modal-content {
+      background: white; padding: 24px; border-radius: 12px; width: 90%; max-width: 400px;
+      box-shadow: var(--shadow-lg);
+    }
+    .modal-content h3 { margin-top: 0; font-size: 1.2rem; margin-bottom: 16px; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem; }
+    .form-group input { width: 100%; padding: 10px; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
+
+    .pagination { display: flex; justify-content: center; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+    .pagination button {
+      padding: 6px 12px; font-size: 0.85rem; background: white; border: 1px solid var(--border);
+      border-radius: 4px; cursor: pointer; transition: all 0.2s; font-weight: 500;
+    }
+    .pagination button:hover:not(.active):not(:disabled) { background: #f1f5f9; }
+    .pagination button.active { background: var(--primary); color: white; border-color: var(--primary); }
+    .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .toast {
+      visibility: hidden; min-width: 280px; background: #1e293b; color: white; text-align: center;
+      border-radius: 8px; padding: 14px 20px; position: fixed; z-index: 300; bottom: 20px;
+      left: 50%; transform: translateX(-50%); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2); font-weight: 500;
+    }
+    .toast.show { visibility: visible; opacity: 1; bottom: 40px; }
+    .toast.success { background: #0f766e; }
+    .toast.error { background: #b91c1c; }
+
+    @media (max-width: 768px) {
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .toolbar-group { justify-content: space-between; width: 100%; }
+      table { font-size: 0.8rem; }
+      th, td { padding: 6px 4px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Manajemen Evaluasi TPA</h2>
+    <div class="subtitle">Sinkronisasi Database API Aktif</div>
+
+    <div class="toolbar">
+      <div class="toolbar-group">
+        <label>🎓 Filter:</label>
+        <select id="filterKelas" onchange="gantiFilter()">
+          <option value="Semua">Semua Kelas</option>
+        </select>
+        <button class="btn-secondary" onclick="bukaModalTambah()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+          Tambah
+        </button>
+        <button class="btn-secondary" onclick="unduhDataSheetJS()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+          Unduh Excel
+        </button>
+        <button class="btn-refresh" onclick="refreshData()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+          Refresh
+        </button>
+      </div>
+      <div class="toolbar-group">
+        <div id="loadingSpinner" class="loader"></div>
+        <button id="btnSimpan" class="btn-primary" onclick="simpanKeServer()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+          Simpan Semua & Proses Narasi
+        </button>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table id="tabelSiswa">
+        <thead>
+          <tr>
+            <th style="width:45px;">No</th>
+            <th style="width:180px;">Nama Siswa</th>
+            <th style="width:70px;">Kelas</th>
+            <th style="width:120px;">Kelompok</th>
+            <th style="width:110px;">Capaian</th>
+            <th style="width:100px;">Indikator 1</th>
+            <th style="width:100px;">Indikator 2</th>
+            <th style="width:100px;">Indikator 3</th>
+            <th style="width:100px; text-align:center;">Aksi</th>
+          </tr>
+          <tr>
+            <th class="sub">&nbsp;</th>
+            <th class="sub">&nbsp;</th>
+            <th class="sub">&nbsp;</th>
+            <th class="sub">&nbsp;</th>
+            <th class="sub">&nbsp;</th>
+            <th class="sub">Huruf / Tajwid</th>
+            <th class="sub">Harakat / Makhraj</th>
+            <th class="sub">Kelancaran / Tartil</th>
+            <th class="sub">&nbsp;</th>
+          </tr>
+        </thead>
+        <tbody id="wadahSiswa">
+          <tr><td colspan="9" style="text-align:center; padding:40px; color:#64748b;">Menghubungkan ke server data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination" id="paginationContainer"></div>
+  </div>
+
+  <div id="modalTambah" class="modal">
+    <div class="modal-content">
+      <h3>Tambah Siswa Baru</h3>
+      <div class="form-group"><label>Nama Lengkap</label><input type="text" id="inputNama" autocomplete="off"></div>
+      <div class="form-group"><label>Kelas</label><input type="text" id="inputKelas" placeholder="Contoh: 1A, 2B" autocomplete="off"></div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="tutupModalTambah()">Batal</button>
+        <button class="btn-primary" onclick="tambahSiswaBaru()">Tambahkan</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalNarasi" class="modal">
+    <div class="modal-content">
+      <h3 id="judulNarasi">Narasi Evaluasi</h3>
+      <p id="isiNarasi" style="line-height:1.6; white-space:pre-wrap; color: var(--text-secondary);"></p>
+      <div class="modal-actions">
+        <button class="btn-primary" onclick="tutupModalNarasi()">Tutup Panel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastNotif" class="toast">Notifikasi</div>
+
+  <script>
+    // GANTI TAUTAN API DI BAWAH INI DENGAN URL DEPLOY TERBARU DARI GOOGLE APPS SCRIPT
+    const API_URL = "https://script.google.com/macros/s/AKfycbx6jBLOHlapblxp0ilOV8oHlOHoiF4BgvWBEnNC0YJuk298McOeKhYS6buarnvs0CWlkg/exec";
+    
+    let dataLokal = [];
+    const opsiNilai = ['','A','B','C','D'];
+    let halamanSaatIni = 1;
+    const barisPerHalaman = 30; // Ditingkatkan agar scroll lebih terasa optimal
+
+    window.onload = () => muatDataDariServer();
+
+    function showToast(pesan, tipe) {
+      const toast = document.getElementById("toastNotif");
+      toast.textContent = pesan; 
+      toast.className = `toast show ${tipe}`;
+      setTimeout(() => toast.className = toast.className.replace("show", ""), 3500);
+    }
+
+    async function callAPI(action, payload = null) {
+      const body = { action, payload };
+      
+      // Integrasi perbaikan CORS melalui tipe text/plain
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(body)
+      });
+      
+      if (!response.ok) throw new Error(`Kegagalan jaringan: ${response.status}`);
+      const result = await response.json();
+      if (result.status === "error") throw new Error(result.message || "Sistem menolak eksekusi");
+      
+      return result.data;
+    }
+
+    async function muatDataDariServer() {
+      try {
+        const data = await callAPI("ambilData");
+        dataLokal = data.map(row => ({
+          no: row[0], nama: row[1], kelas: row[2] || "-", kelompok: row[3] || "", capaian: row[4] || "",
+          ind1: row[5] || "", ind2: row[6] || "", ind3: row[7] || "", deskripsi: row[8] || ""
+        }));
+        
+        const setKelas = [...new Set(dataLokal.map(s => s.kelas).filter(k => k !== "" && k !== "-"))].sort();
+        const filterEl = document.getElementById("filterKelas");
+        
+        while (filterEl.options.length > 1) filterEl.remove(1);
+        setKelas.forEach(k => {
+          const opt = document.createElement("option");
+          opt.value = k; opt.textContent = `Kelas ${k}`;
+          filterEl.appendChild(opt);
+        });
+        
+        halamanSaatIni = 1;
+        renderTabel();
+        showToast("Sinkronisasi data berhasil.", "success");
+      } catch (err) {
+        showToast("Gagal memuat data: " + err.message, "error");
+      }
+    }
+
+    async function refreshData() {
+      showToast("Menyinkronkan ulang...", "success");
+      await muatDataDariServer();
+    }
+
+    function gantiFilter() { halamanSaatIni = 1; renderTabel(); }
+
+    function getDataTerfilter() {
+      const filter = document.getElementById("filterKelas").value;
+      return filter === "Semua" ? dataLokal : dataLokal.filter(s => s.kelas === filter);
+    }
+
+    function getOpsiCapaian(kelompok) {
+      if (kelompok === "Iqra") return Array.from({length: 6}, (_, i) => `Jilid ${i+1}`);
+      if (kelompok === "Al-Qur'an") return Array.from({length: 30}, (_, i) => `Juz ${i+1}`);
+      return [];
+    }
+
+    function updateCapaianDropdown(noSiswa) {
+      const siswa = dataLokal.find(s => s.no === noSiswa);
+      if (!siswa) return;
+      
+      const selectEl = document.getElementById(`capaian-${noSiswa}`);
+      if (!selectEl) return;
+      
+      const currentValue = siswa.capaian;
+      selectEl.innerHTML = "";
+      
+      if (!siswa.kelompok) {
+        selectEl.innerHTML = `<option value="" disabled selected>Pilih Kelompok</option>`;
+        siswa.capaian = "";
+        return;
+      }
+      
+      const opsi = getOpsiCapaian(siswa.kelompok);
+      let valueExists = false;
+      
+      opsi.forEach(teks => {
+        const opt = document.createElement("option");
+        opt.value = teks; opt.textContent = teks;
+        if (teks === currentValue) { opt.selected = true; valueExists = true; }
+        selectEl.appendChild(opt);
+      });
+      
+      if (!valueExists) { selectEl.value = ""; siswa.capaian = ""; }
+    }
+
+    function updateKelompokDanCapaian(noSiswa, value) {
+      const siswa = dataLokal.find(s => s.no === noSiswa);
+      if (siswa) siswa.kelompok = value;
+      updateCapaianDropdown(noSiswa);
+    }
+
+    function updateData(noSiswa, field, value) {
+      const siswa = dataLokal.find(s => s.no === noSiswa);
+      if (siswa) siswa[field] = value;
+    }
+
+    function renderTabel() {
+      const wadah = document.getElementById("wadahSiswa");
+      wadah.innerHTML = "";
+      
+      const dataSaring = getDataTerfilter();
+      if (dataSaring.length === 0) {
+        wadah.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:20px;">Catatan kosong.</td></tr>`;
+        document.getElementById("paginationContainer").innerHTML = "";
+        return;
+      }
+      
+      const totalHalaman = Math.ceil(dataSaring.length / barisPerHalaman);
+      if (halamanSaatIni > totalHalaman) halamanSaatIni = totalHalaman;
+      
+      const start = (halamanSaatIni - 1) * barisPerHalaman;
+      const halamanData = dataSaring.slice(start, start + barisPerHalaman);
+      const fragmen = document.createDocumentFragment();
+      
+      halamanData.forEach((s, idx) => {
+        const tr = document.createElement("tr");
+        let capaianHTML = "";
+        
+        if (!s.kelompok) {
+          capaianHTML = `<select id="capaian-${s.no}" disabled><option>Kunci Kelompok</option></select>`;
+        } else {
+          const opsi = getOpsiCapaian(s.kelompok);
+          const optionsHTML = opsi.map(t => `<option value="${t}" ${s.capaian === t ? 'selected' : ''}>${t}</option>`).join('');
+          capaianHTML = `<select id="capaian-${s.no}" onchange="updateData(${s.no}, 'capaian', this.value)">${optionsHTML}</select>`;
+        }
+        
+        tr.innerHTML = `
+          <td>${start + idx + 1}</td>
+          <td style="font-weight:600;">${s.nama}</td>
+          <td><input type="text" value="${s.kelas === '-' ? '' : s.kelas}" onchange="updateData(${s.no}, 'kelas', this.value)"></td>
+          <td>
+            <select onchange="updateKelompokDanCapaian(${s.no}, this.value)">
+              <option value="" ${!s.kelompok ? "selected":""}>-</option>
+              <option value="Iqra" ${s.kelompok==="Iqra"?"selected":""}>Iqra</option>
+              <option value="Al-Qur'an" ${s.kelompok==="Al-Qur'an"?"selected":""}>Al-Qur'an</option>
+            </select>
+          </td>
+          <td>${capaianHTML}</td>
+          <td><select onchange="updateData(${s.no}, 'ind1', this.value)">${opsiNilai.map(o => `<option value="${o}" ${s.ind1===o?"selected":""}>${o||"-"}</option>`).join('')}</select></td>
+          <td><select onchange="updateData(${s.no}, 'ind2', this.value)">${opsiNilai.map(o => `<option value="${o}" ${s.ind2===o?"selected":""}>${o||"-"}</option>`).join('')}</select></td>
+          <td><select onchange="updateData(${s.no}, 'ind3', this.value)">${opsiNilai.map(o => `<option value="${o}" ${s.ind3===o?"selected":""}>${o||"-"}</option>`).join('')}</select></td>
+          <td class="aksi-cell">
+            <button class="btn-icon btn-simpan" title="Simpan Individu" onclick="simpanPerBaris(${s.no})">
+              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+            </button>
+            <button class="btn-icon btn-lihat" title="Tinjau Narasi" onclick="lihatNarasi(${s.no})">
+              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+            </button>
+            <button class="btn-icon btn-hapus" title="Cabut Akses" onclick="konfirmasiHapus(${s.no}, '${s.nama.replace(/'/g, "\\'")}')">
+              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </button>
+          </td>`;
+        fragmen.appendChild(tr);
+      });
+      
+      wadah.appendChild(fragmen);
+      renderPagination(totalHalaman);
+    }
+
+    function renderPagination(totalHalaman) {
+      const container = document.getElementById("paginationContainer");
+      container.innerHTML = "";
+      if (totalHalaman <= 1) return;
+      
+      const btnPrev = document.createElement("button");
+      btnPrev.textContent = "Mundur";
+      btnPrev.disabled = halamanSaatIni === 1;
+      btnPrev.onclick = () => { if (halamanSaatIni > 1) { halamanSaatIni--; renderTabel(); } };
+      container.appendChild(btnPrev);
+      
+      for (let i = 1; i <= totalHalaman; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        if (i === halamanSaatIni) btn.classList.add("active");
+        btn.onclick = () => { halamanSaatIni = i; renderTabel(); };
+        container.appendChild(btn);
+      }
+      
+      const btnNext = document.createElement("button");
+      btnNext.textContent = "Maju";
+      btnNext.disabled = halamanSaatIni === totalHalaman;
+      btnNext.onclick = () => { if (halamanSaatIni < totalHalaman) { halamanSaatIni++; renderTabel(); } };
+      container.appendChild(btnNext);
+    }
+
+    function lihatNarasi(no) {
+      const siswa = dataLokal.find(s => s.no === no);
+      if (!siswa) return;
+      document.getElementById("judulNarasi").textContent = `Narasi: ${siswa.nama}`;
+      document.getElementById("isiNarasi").textContent = siswa.deskripsi || "Penilaian tidak lengkap. Isi seluruh indikator lalu jalankan penyimpanan server.";
+      document.getElementById("modalNarasi").classList.add("show");
+    }
+    
+    function tutupModalNarasi() { document.getElementById("modalNarasi").classList.remove("show"); }
+
+    async function simpanPerBaris(no) {
+      const siswa = dataLokal.find(s => s.no === no);
+      if (!siswa) return;
+      
+      try {
+        const result = await callAPI("simpanSatu", {
+          no: siswa.no, nama: siswa.nama, kelas: siswa.kelas, kelompok: siswa.kelompok,
+          capaian: siswa.capaian, ind1: siswa.ind1, ind2: siswa.ind2, ind3: siswa.ind3
+        });
+        
+        if (result.status === "Berhasil") {
+          siswa.deskripsi = result.deskripsi;
+          showToast(`Integritas data ${siswa.nama} dikunci.`, "success");
+        } else {
+          showToast(result.status || "Sinkronisasi tertunda.", "error");
+        }
+      } catch (err) {
+        showToast("Penolakan Server: " + err.message, "error");
+      }
+    }
+
+    function bukaModalTambah() { 
+      document.getElementById("modalTambah").classList.add("show"); 
+      document.getElementById("inputNama").focus(); 
+    }
+    
+    function tutupModalTambah() { 
+      document.getElementById("modalTambah").classList.remove("show"); 
+      document.getElementById("inputNama").value = ""; 
+      document.getElementById("inputKelas").value = ""; 
+    }
+
+    async function tambahSiswaBaru() {
+      const nama = document.getElementById("inputNama").value.trim();
+      const kelas = document.getElementById("inputKelas").value.trim();
+      
+      if (!nama) { showToast("Gagal: Identitas nama kosong.", "error"); return; }
+      
+      try {
+        const newNo = await callAPI("tambahSiswa", { nama, kelas });
+        dataLokal.push({ no: newNo, nama, kelas: kelas || "-", kelompok: "", capaian: "", ind1: "", ind2: "", ind3: "", deskripsi: "" });
+        tutupModalTambah();
+        
+        // Pindahkan ke halaman terakhir tempat data baru berada
+        const filter = document.getElementById("filterKelas").value;
+        const total = filter === "Semua" ? dataLokal.length : dataLokal.filter(s => s.kelas === filter).length;
+        halamanSaatIni = Math.ceil(total / barisPerHalaman);
+        
+        renderTabel();
+        showToast("Registrasi siswa berhasil ditanamkan.", "success");
+      } catch (err) {
+        showToast("Anomali Penulisan: " + err.message, "error");
+      }
+    }
+
+    async function konfirmasiHapus(no, nama) {
+      if (confirm(`Peringatan: Penghapusan rute data untuk "${nama}" bersifat permanen. Lanjutkan?`)) {
+        try {
+          await callAPI("hapusSiswa", { no });
+          dataLokal = dataLokal.filter(s => s.no !== no);
+          renderTabel();
+          showToast("Akses data dihilangkan.", "success");
+        } catch (err) {
+          showToast("Kesalahan Dekonstruksi: " + err.message, "error");
+        }
+      }
+    }
+
+    async function simpanKeServer() {
+      const btn = document.getElementById("btnSimpan");
+      const spinner = document.getElementById("loadingSpinner");
+      
+      btn.classList.add("btn-disabled"); 
+      btn.disabled = true; 
+      spinner.style.display = "inline-block";
+      
+      try {
+        await callAPI("simpanSemua", dataLokal);
+        showToast("Operasi massal berhasil diamankan.", "success");
+      } catch (err) {
+        showToast("Resolusi Terhenti: " + err.message, "error");
+      } finally {
+        btn.classList.remove("btn-disabled"); 
+        btn.disabled = false; 
+        spinner.style.display = "none";
+      }
+    }
+
+    function unduhDataSheetJS() {
+      const filter = document.getElementById("filterKelas").value;
+      const dataSaring = filter === "Semua" ? dataLokal : dataLokal.filter(s => s.kelas === filter);
+      
+      if (dataSaring.length === 0) { showToast("Ekstraksi dibatalkan: Data nihil.", "error"); return; }
+      
+      const dataExcel = dataSaring.map(s => ({
+        "No Urut": s.no, 
+        "Nama Lengkap": s.nama, 
+        "Kelas": s.kelas === "-" ? "" : s.kelas,
+        "Kategori Bacaan": s.kelompok, 
+        "Capaian Detail": s.capaian, 
+        "Deskripsi Akademik": s.deskripsi || "Membutuhkan evaluasi lanjutan"
+      }));
+      
+      const ws = XLSX.utils.json_to_sheet(dataExcel);
+      ws['!cols'] = [{wch:8}, {wch:30}, {wch:10}, {wch:18}, {wch:18}, {wch:130}];
+      
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Rekapitulasi TPA");
+      
+      const namaFile = filter === "Semua" ? "Rekap_TPA_Nasional.xlsx" : `Rekap_TPA_Kelas_${filter}.xlsx`;
+      XLSX.writeFile(wb, namaFile);
+      showToast(`Pencetakan dokumen ${namaFile} disahkan.`, "success");
+    }
+  </script>
+</body>
+</html>
