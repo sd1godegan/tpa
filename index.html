@@ -49,7 +49,6 @@
     .toolbar-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .toolbar-group label { font-weight: 600; color: var(--text-secondary); font-size: 0.85rem; }
     
-    /* Pengaturan input global dilepas dari width 100% */
     select, input[type="text"] {
       padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius);
       font-size: 0.85rem; background: white; transition: border-color var(--transition);
@@ -95,7 +94,6 @@
     td { padding: 8px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; background: white; }
     tbody tr:hover td { background: #f0fdfa; }
     
-    /* Penguncian width 100% hanya untuk elemen form di dalam tabel */
     td select, td input[type="text"] { width: 100%; padding: 6px; font-size: 0.8rem; border-radius: 4px; box-sizing: border-box; }
     
     .aksi-cell { display: flex; gap: 4px; justify-content: center; }
@@ -133,7 +131,6 @@
     .modal.show { display: flex; }
     .modal-content { background: white; padding: 24px; border-radius: 12px; width: 100%; max-width: 400px; box-shadow: var(--shadow-lg); }
     
-    /* Penguncian width 100% untuk form pop up modal */
     .form-group { margin-bottom: 16px; }
     .form-group label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem; }
     .form-group input { width: 100%; padding: 10px; box-sizing: border-box; }
@@ -153,29 +150,29 @@
 </head>
 <body>
   <div class="container">
-    <h2>Manajemen Evaluasi TPA</h2>
-    <div class="subtitle">Sinkronisasi Database API Aktif</div>
+    <h2>Manajemen Penilaian TPA</h2>
+    <div class="subtitle">Aplikasi untuk menginput nilai ekstrakurikuler TPA SD Negeri 1 Godegan</div>
 
     <div class="toolbar">
       <div class="toolbar-group">
-        <label>Filter:</label>
+        <label>Filter Kelas:</label>
         <select id="filterKelas" onchange="gantiFilter()">
-          <option value="Semua">Tampilkan Semua Kelas</option>
+          <option value="Semua">Semua Kelas</option>
         </select>
         <button class="btn-secondary" onclick="bukaModalTambah()">
           <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> Tambah Siswa
         </button>
         <button class="btn-secondary" onclick="unduhDataSheetJS()">
-          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Ekspor Excel
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Unduh Excel
         </button>
         <button class="btn-refresh" onclick="refreshData()">
-          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Tarik Data
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Refresh Data
         </button>
       </div>
       <div class="toolbar-group">
         <div id="loadingSpinner" class="loader"></div>
         <button id="btnSimpan" class="btn-primary" onclick="simpanKeServer()">
-          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg> Simpan & Generate Narasi
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg> Simpan Semua Data
         </button>
       </div>
     </div>
@@ -207,7 +204,7 @@
           </tr>
         </thead>
         <tbody id="wadahSiswa">
-          <tr><td colspan="9" style="text-align:center; padding:40px; color:#64748b;">Menghubungkan ke server data...</td></tr>
+          <tr><td colspan="9" style="text-align:center; padding:40px; color:#64748b;">Memuat data dari server...</td></tr>
         </tbody>
       </table>
     </div>
@@ -219,22 +216,22 @@
     <div class="modal-content">
       <h3 style="margin-bottom: 20px;">Tambah Siswa Baru</h3>
       <div class="form-group"><label>Nama Lengkap</label><input type="text" id="inputNama" autocomplete="off" placeholder="Tuliskan nama siswa"></div>
-      <div class="form-group"><label>Kelas / Kode Ruang</label><input type="text" id="inputKelas" placeholder="Contoh: 1A, 2B" autocomplete="off"></div>
+      <div class="form-group"><label>Kelas</label><input type="text" id="inputKelas" placeholder="Contoh: 1A, 2B" autocomplete="off"></div>
       <div class="modal-actions">
         <button class="btn-secondary" onclick="tutupModalTambah()">Batal</button>
-        <button class="btn-primary" onclick="tambahSiswaBaru()">Tambahkan Data</button>
+        <button class="btn-primary" onclick="tambahSiswaBaru()">Simpan</button>
       </div>
     </div>
   </div>
 
   <div id="modalNarasi" class="modal">
     <div class="modal-content">
-      <h3 id="judulNarasi" style="margin-bottom: 12px;">Narasi Evaluasi</h3>
+      <h3 id="judulNarasi" style="margin-bottom: 12px;">Deskripsi Penilaian</h3>
       <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
         <p id="isiNarasi" style="line-height:1.6; white-space:pre-wrap; color: var(--text-secondary); margin:0;"></p>
       </div>
       <div class="modal-actions">
-        <button class="btn-primary" onclick="tutupModalNarasi()" style="width: 100%;">Tutup Panel</button>
+        <button class="btn-primary" onclick="tutupModalNarasi()" style="width: 100%;">Tutup</button>
       </div>
     </div>
   </div>
@@ -267,9 +264,9 @@
         body: JSON.stringify(body)
       });
       
-      if (!response.ok) throw new Error(`Kegagalan jaringan peramban: ${response.status}`);
+      if (!response.ok) throw new Error(`Status server: ${response.status}`);
       const result = await response.json();
-      if (result.status === "error") throw new Error(result.message || "Sistem menolak eksekusi");
+      if (result.status === "error") throw new Error(result.message || "Terjadi kesalahan di server");
       
       return result.data;
     }
@@ -288,20 +285,20 @@
         while (filterEl.options.length > 1) filterEl.remove(1);
         setKelas.forEach(k => {
           const opt = document.createElement("option");
-          opt.value = k; opt.textContent = `${k}`;
+          opt.value = k; opt.textContent = `Kelas ${k}`;
           filterEl.appendChild(opt);
         });
         
         halamanSaatIni = 1;
         renderTabel();
-        showToast("Sinkronisasi data berhasil.", "success");
+        showToast("Data berhasil dimuat.", "success");
       } catch (err) {
-        showToast("Gagal memuat struktur data: " + err.message, "error");
+        showToast("Gagal mengambil data: " + err.message, "error");
       }
     }
 
     async function refreshData() {
-      showToast("Memaksa sinkronisasi ulang...", "success");
+      showToast("Memuat ulang data...", "success");
       await muatDataDariServer();
     }
 
@@ -329,7 +326,7 @@
       selectEl.innerHTML = "";
       
       if (!siswa.kelompok) {
-        selectEl.innerHTML = `<option value="" disabled selected>Pilih Kelompok Dasar</option>`;
+        selectEl.innerHTML = `<option value="" disabled selected>Pilih Kelompok</option>`;
         siswa.capaian = "";
         return;
       }
@@ -364,7 +361,7 @@
       
       const dataSaring = getDataTerfilter();
       if (dataSaring.length === 0) {
-        wadah.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:20px;">Catatan penyaringan kosong.</td></tr>`;
+        wadah.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:20px;">Belum ada data siswa.</td></tr>`;
         document.getElementById("paginationContainer").innerHTML = "";
         return;
       }
@@ -381,7 +378,7 @@
         let capaianHTML = "";
         
         if (!s.kelompok) {
-          capaianHTML = `<select id="capaian-${s.no}" disabled><option>Kunci Kelompok</option></select>`;
+          capaianHTML = `<select id="capaian-${s.no}" disabled><option>Pilih Kelompok</option></select>`;
         } else {
           const opsi = getOpsiCapaian(s.kelompok);
           const optionsHTML = opsi.map(t => `<option value="${t}" ${s.capaian === t ? 'selected' : ''}>${t}</option>`).join('');
@@ -389,28 +386,28 @@
         }
         
         tr.innerHTML = `
-          <td data-label="No. Urut Data">${start + idx + 1}</td>
-          <td data-label="Identitas Siswa" style="font-weight:700; color:#0f172a; font-size:1rem;">${s.nama}</td>
-          <td data-label="Pengaturan Kelas"><input type="text" value="${s.kelas === '-' ? '' : s.kelas}" onchange="updateData(${s.no}, 'kelas', this.value)"></td>
-          <td data-label="Penempatan Kelompok">
+          <td data-label="No">${start + idx + 1}</td>
+          <td data-label="Nama Siswa" style="font-weight:700; color:#0f172a; font-size:1rem;">${s.nama}</td>
+          <td data-label="Kelas"><input type="text" value="${s.kelas === '-' ? '' : s.kelas}" onchange="updateData(${s.no}, 'kelas', this.value)"></td>
+          <td data-label="Kelompok">
             <select onchange="updateKelompokDanCapaian(${s.no}, this.value)">
-              <option value="" ${!s.kelompok ? "selected":""}>- Pilih Basis -</option>
-              <option value="Iqra" ${s.kelompok==="Iqra"?"selected":""}>Buku Iqra</option>
+              <option value="" ${!s.kelompok ? "selected":""}>- Pilih -</option>
+              <option value="Iqra" ${s.kelompok==="Iqra"?"selected":""}>Iqra</option>
               <option value="Al-Qur'an" ${s.kelompok==="Al-Qur'an"?"selected":""}>Al-Qur'an</option>
             </select>
           </td>
-          <td data-label="Level Capaian">${capaianHTML}</td>
-          <td data-label="Indikator Dasar (Huruf / Tajwid)"><select onchange="updateData(${s.no}, 'ind1', this.value)">${opsiNilai.map(o => `<option value="${o}" ${s.ind1===o?"selected":""}>${o||"- Kosong -"}</option>`).join('')}</select></td>
-          <td data-label="Indikator Teknis (Harakat / Makhraj)"><select onchange="updateData(${s.no}, 'ind2', this.value)">${opsiNilai.map(o => `<option value="${o}" ${s.ind2===o?"selected":""}>${o||"- Kosong -"}</option>`).join('')}</select></td>
-          <td data-label="Indikator Aliran (Kelancaran / Tartil)"><select onchange="updateData(${s.no}, 'ind3', this.value)">${opsiNilai.map(o => `<option value="${o}" ${s.ind3===o?"selected":""}>${o||"- Kosong -"}</option>`).join('')}</select></td>
-          <td data-label="Pusat Kendali Aksi" class="aksi-cell">
-            <button class="btn-icon btn-simpan" title="Simpan Individu" onclick="simpanPerBaris(${s.no})">
+          <td data-label="Capaian">${capaianHTML}</td>
+          <td data-label="Indikator 1 (Huruf / Tajwid)"><select onchange="updateData(${s.no}, 'ind1', this.value)">${opsiNilai.map(o => `<option value="${o}" ${s.ind1===o?"selected":""}>${o||"-"}</option>`).join('')}</select></td>
+          <td data-label="Indikator 2 (Harakat / Makhraj)"><select onchange="updateData(${s.no}, 'ind2', this.value)">${opsiNilai.map(o => `<option value="${o}" ${s.ind2===o?"selected":""}>${o||"-"}</option>`).join('')}</select></td>
+          <td data-label="Indikator 3 (Lancar / Tartil)"><select onchange="updateData(${s.no}, 'ind3', this.value)">${opsiNilai.map(o => `<option value="${o}" ${s.ind3===o?"selected":""}>${o||"-"}</option>`).join('')}</select></td>
+          <td data-label="Aksi" class="aksi-cell">
+            <button class="btn-icon btn-simpan" title="Simpan Siswa" onclick="simpanPerBaris(${s.no})">
               <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
             </button>
-            <button class="btn-icon btn-lihat" title="Tinjau Narasi Deskripsi" onclick="lihatNarasi(${s.no})">
+            <button class="btn-icon btn-lihat" title="Lihat Deskripsi" onclick="lihatNarasi(${s.no})">
               <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
             </button>
-            <button class="btn-icon btn-hapus" title="Cabut Akses Siswa" onclick="konfirmasiHapus(${s.no}, '${s.nama.replace(/'/g, "\\'")}')">
+            <button class="btn-icon btn-hapus" title="Hapus Siswa" onclick="konfirmasiHapus(${s.no}, '${s.nama.replace(/'/g, "\\'")}')">
               <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
             </button>
           </td>`;
@@ -453,8 +450,8 @@
     function lihatNarasi(no) {
       const siswa = dataLokal.find(s => s.no === no);
       if (!siswa) return;
-      document.getElementById("judulNarasi").textContent = `Catatan: ${siswa.nama}`;
-      document.getElementById("isiNarasi").textContent = siswa.deskripsi || "Penilaian tidak lengkap. Tentukan opsi seluruh indikator lalu jalankan tombol simpan di sisi kanan atas halaman.";
+      document.getElementById("judulNarasi").textContent = `Deskripsi: ${siswa.nama}`;
+      document.getElementById("isiNarasi").textContent = siswa.deskripsi || "Penilaian belum lengkap. Silakan lengkapi semua indikator lalu tekan tombol simpan.";
       document.getElementById("modalNarasi").classList.add("show");
     }
     
@@ -472,12 +469,12 @@
         
         if (result.status === "Berhasil") {
           siswa.deskripsi = result.deskripsi;
-          showToast(`Integritas data ${siswa.nama} dikunci pada server.`, "success");
+          showToast(`Data ${siswa.nama} berhasil disimpan.`, "success");
         } else {
-          showToast(result.status || "Penyimpanan data ditolak.", "error");
+          showToast(result.status || "Gagal menyimpan data.", "error");
         }
       } catch (err) {
-        showToast("Hambatan Jaringan: " + err.message, "error");
+        showToast("Gangguan jaringan: " + err.message, "error");
       }
     }
 
@@ -496,7 +493,7 @@
       const nama = document.getElementById("inputNama").value.trim();
       const kelas = document.getElementById("inputKelas").value.trim();
       
-      if (!nama) { showToast("Gagal: Identitas nama utama tidak ada.", "error"); return; }
+      if (!nama) { showToast("Nama siswa wajib diisi.", "error"); return; }
       
       try {
         const newNo = await callAPI("tambahSiswa", { nama, kelas });
@@ -508,21 +505,21 @@
         halamanSaatIni = Math.ceil(total / barisPerHalaman);
         
         renderTabel();
-        showToast("Registrasi entitas baru tertanam.", "success");
+        showToast("Siswa baru berhasil ditambahkan.", "success");
       } catch (err) {
-        showToast("Anomali Penulisan Server: " + err.message, "error");
+        showToast("Gagal menambah data ke server: " + err.message, "error");
       }
     }
 
     async function konfirmasiHapus(no, nama) {
-      if (confirm(`Peringatan: Eksekusi hapus rute data untuk "${nama}" membuang data secara permanen. Eksekusi?`)) {
+      if (confirm(`Yakin ingin menghapus data "${nama}" secara permanen?`)) {
         try {
           await callAPI("hapusSiswa", { no });
           dataLokal = dataLokal.filter(s => s.no !== no);
           renderTabel();
-          showToast("Izin akses data dicabut.", "success");
+          showToast("Data berhasil dihapus.", "success");
         } catch (err) {
-          showToast("Kegagalan Dekonstruksi: " + err.message, "error");
+          showToast("Gagal menghapus data: " + err.message, "error");
         }
       }
     }
@@ -537,9 +534,9 @@
       
       try {
         await callAPI("simpanSemua", dataLokal);
-        showToast("Operasi penyimpanan tumpukan berhasil disahkan.", "success");
+        showToast("Semua data berhasil disimpan ke server.", "success");
       } catch (err) {
-        showToast("Resolusi Server Terhenti: " + err.message, "error");
+        showToast("Gagal menyimpan semua data: " + err.message, "error");
       } finally {
         btn.classList.remove("btn-disabled"); 
         btn.disabled = false; 
@@ -551,26 +548,26 @@
       const filter = document.getElementById("filterKelas").value;
       const dataSaring = filter === "Semua" ? dataLokal : dataLokal.filter(s => s.kelas === filter);
       
-      if (dataSaring.length === 0) { showToast("Pencetakan dibatalkan: Temuan data kosong.", "error"); return; }
+      if (dataSaring.length === 0) { showToast("Gagal mengunduh: Belum ada data.", "error"); return; }
       
       const dataExcel = dataSaring.map(s => ({
-        "No Urut": s.no, 
-        "Nama Identitas": s.nama, 
-        "Pengelompokan Kelas": s.kelas === "-" ? "" : s.kelas,
-        "Sektor Evaluasi": s.kelompok, 
-        "Capaian Tertinggi": s.capaian, 
-        "Narasi Akademik Otomatis": s.deskripsi || "Kondisi parameter penilaian tertahan (Belum Lengkap)"
+        "No": s.no, 
+        "Nama Siswa": s.nama, 
+        "Kelas": s.kelas === "-" ? "" : s.kelas,
+        "Kelompok": s.kelompok, 
+        "Capaian": s.capaian, 
+        "Deskripsi Penilaian": s.deskripsi || "Penilaian belum lengkap"
       }));
       
       const ws = XLSX.utils.json_to_sheet(dataExcel);
       ws['!cols'] = [{wch:8}, {wch:35}, {wch:22}, {wch:18}, {wch:20}, {wch:140}];
       
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Rekapitulasi TPA Akhir");
+      XLSX.utils.book_append_sheet(wb, ws, "Rekapitulasi Nilai TPA");
       
-      const namaFile = filter === "Semua" ? "Rekap_TPA_Nasional.xlsx" : `Rekap_TPA_Kelas_${filter}.xlsx`;
+      const namaFile = filter === "Semua" ? "Rekap_Nilai_TPA.xlsx" : `Rekap_Nilai_TPA_Kelas_${filter}.xlsx`;
       XLSX.writeFile(wb, namaFile);
-      showToast(`Pencetakan berkas ${namaFile} berjalan.`, "success");
+      showToast(`File ${namaFile} berhasil diunduh.`, "success");
     }
   </script>
 </body>
